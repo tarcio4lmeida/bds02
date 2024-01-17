@@ -3,8 +3,8 @@ package com.devsuperior.bds02.controller;
 import com.devsuperior.bds02.dto.CityDTO;
 import com.devsuperior.bds02.service.CityService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -27,6 +27,7 @@ public class CityController {
         dto = service.insert(dto);
         return ResponseEntity.created(uri).body(dto);
     }
+
     @GetMapping
     public ResponseEntity<List<CityDTO>> findAll() {
         return ResponseEntity.ok(service.findAll());
@@ -34,10 +35,15 @@ public class CityController {
 
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<CityDTO> delete(@PathVariable Long id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
+        try {
+            service.delete(id);
+            return ResponseEntity.noContent().build();
+        } catch (EmptyResultDataAccessException e) {
+            return ResponseEntity.notFound().build();
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
-
 
 
 }
